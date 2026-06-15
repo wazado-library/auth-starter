@@ -1,7 +1,6 @@
-package com.wazado.authstarter.application.usecase.jwt.authentication.filter;
+package com.wazado.authstarter.domain.filter;
 
 import com.wazado.authstarter.domain.entity.user.UserPrinciple;
-import com.wazado.authstarter.domain.service.jwt.authentication.filter.JwtAuthenticationFilter;
 import com.wazado.authstarter.domain.service.jwt.provider.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,7 +23,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JwtAuthenticationFilterUseCase extends OncePerRequestFilter implements JwtAuthenticationFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
     JwtProvider jwtProvider;
 
     @Override
