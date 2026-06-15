@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -5,8 +7,26 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.wazado'
-version = '0.0.1-SNAPSHOT'
+def groupId='com.wazado'
+def artifactId='auth-starter'
+def buildVersion="develop-${new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())}-SNAPSHOT"
+
+def env = rootProject.file(".env")
+if(env.exists()) {
+    env.eachLine {l -> {
+        if(l.contains("=")) {
+            def lineValue=l.split("=", 2)
+            System.setProperty(lineValue[0].trim(), lineValue[1].trim())
+        }
+    }}
+}
+def GIT_USER=System.getProperty("GIT_USERNAME")
+def GIT_TOKEN=System.getProperty("GIT_TOKEN")
+
+print("BuildVersion:${buildVersion}\nGroupId:${groupId}\nArtifactId:${artifactId}")
+
+group = groupId
+version = buildVersion
 description = 'auth-starter'
 
 java {
@@ -20,16 +40,47 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    api 'org.springframework.boot:spring-boot-starter-security'
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    api 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testCompileOnly 'org.projectlombok:lombok'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            groupId = groupId
+            artifactId=artifactId
+            version=buildVersion
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name='GitHubPackage'
+            url=uri("https://maven.pkg.github.com/wazado-library/auth-starter")
+            credentials {
+                username=GIT_USER
+                password=GIT_TOKEN
+            }
+        }
+    }
 }
