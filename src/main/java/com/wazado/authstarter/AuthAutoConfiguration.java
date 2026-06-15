@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
 @AutoConfiguration
 @EnableConfigurationProperties(AuthProperties.class)
@@ -27,7 +29,7 @@ public class AuthAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AuthenticationConfiguration authConfiguration(JwtAuthenticationFilter filter, AuthProperties properties) {
-        return new AuthenticationConfiguration(filter, properties);
+    public SecurityFilterChain securityFilterChain(JwtAuthenticationFilter filter, AuthProperties properties, HttpSecurity http) throws Exception {
+        return new AuthenticationConfiguration(filter, properties).securityFilterChain(http);
     }
 }
