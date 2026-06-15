@@ -1,10 +1,12 @@
-package com.wazado.authstarter.application.usecase;
+package com.wazado.authstarter.application.usecase.jwt.provider;
 
 import com.wazado.authstarter.domain.entity.user.UserPrinciple;
 import com.wazado.authstarter.domain.service.jwt.provider.JwtProvider;
 import com.wazado.authstarter.infrastructure.bootstrap.properties.AuthProperties;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -22,7 +24,6 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtProviderUseCase implements JwtProvider {
     AuthProperties properties;
-    HttpServletRequest request;
 
     @Override
     public String generateToken(UserPrinciple userPrinciple) {
@@ -38,24 +39,30 @@ public class JwtProviderUseCase implements JwtProvider {
     }
 
     @Override
-    public UserPrinciple parseToken() {
-        Optional<String> token = getTokenFromHeader();
-        if(token.isEmpty()) {
-            return null;
+    public UserPrinciple parseToken(HttpServletRequest request) {
+        try {
+            Optional<String> token = getTokenFromHeader(request);
+            if(token.isEmpty()) {
+                return null;
+            }
+            Claims claims = Jwts.parser()
+                    .verifyWith(generateKey())
+                    .build()
+                    .parseSignedClaims(token.get())
+                    .getPayload();
+            return UserPrinciple.of(claims);
+        } catch (JwtException e) {
+            throw new RuntimeException("Thông tin xác thực không hợp lệ");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Vui lòng bổ sung thông tin xác thực");
         }
-        Claims claims = Jwts.parser()
-                .verifyWith(generateKey())
-                .build()
-                .parseSignedClaims(token.get())
-                .getPayload();
-        return UserPrinciple.of(claims);
     }
 
     private SecretKey generateKey() {
         return Keys.hmacShaKeyFor(properties.getSecretKey().getBytes());
     }
 
-    private Optional<String> getTokenFromHeader() {
+    private Optional<String> getTokenFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         return Optional.ofNullable(bearerToken)
                 .filter(b -> b.contains("bearer"))
