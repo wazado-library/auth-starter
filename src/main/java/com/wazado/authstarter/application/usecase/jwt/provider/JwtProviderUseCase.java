@@ -26,12 +26,24 @@ public class JwtProviderUseCase implements JwtProvider {
     AuthProperties properties;
 
     @Override
-    public String generateToken(UserPrinciple userPrinciple) {
+    public String generateAccessToken(UserPrinciple userPrinciple) {
         return Jwts.builder()
                 .subject(String.valueOf(userPrinciple.userId()))
                 .claim("username", userPrinciple.username())
                 .claim("roles", userPrinciple.roles())
-                .claim("permissions", userPrinciple.permissions() )
+                .claim("permissions", userPrinciple.permissions())
+                .claim("type", "ACCESS")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusMillis(properties.getExpiration())))
+                .signWith(generateKey())
+                .compact();
+    }
+
+    @Override
+    public String generateRefreshToken(Long userId) {
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("type", "REFRESH")
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusMillis(properties.getExpiration())))
                 .signWith(generateKey())

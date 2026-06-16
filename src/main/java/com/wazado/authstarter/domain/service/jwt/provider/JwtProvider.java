@@ -4,6 +4,7 @@ import com.wazado.authstarter.domain.entity.user.UserPrinciple;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface JwtProvider {
-    String generateToken(UserPrinciple userPrinciple);
+    String generateAccessToken(UserPrinciple userPrinciple);
+    String generateRefreshToken(Long userId);
     UserPrinciple parseToken(HttpServletRequest request);
 }
