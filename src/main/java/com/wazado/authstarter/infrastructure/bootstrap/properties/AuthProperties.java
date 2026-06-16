@@ -14,6 +14,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthProperties {
     String secretKey;
-    Long expiration;
+    Long accessExpiration;
+    Long refreshExpiration;
     List<String> permitAll;
 }

@@ -34,7 +34,7 @@ public class JwtProviderUseCase implements JwtProvider {
                 .claim("permissions", userPrinciple.permissions())
                 .claim("type", "ACCESS")
                 .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusMillis(properties.getExpiration())))
+                .expiration(Date.from(Instant.now().plusMillis(properties.getAccessExpiration())))
                 .signWith(generateKey())
                 .compact();
     }
@@ -45,7 +45,7 @@ public class JwtProviderUseCase implements JwtProvider {
                 .subject(String.valueOf(userId))
                 .claim("type", "REFRESH")
                 .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusMillis(properties.getExpiration())))
+                .expiration(Date.from(Instant.now().plusMillis(properties.getRefreshExpiration())))
                 .signWith(generateKey())
                 .compact();
     }
