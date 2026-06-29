@@ -15,6 +15,10 @@ import org.springframework.security.config.annotation.web.configurers.CorsConfig
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Collection;
 
 @Configuration
 @EnableMethodSecurity
@@ -32,8 +36,12 @@ public class AuthenticationConfiguration {
                 .cors(CorsConfigurer::disable)
                 .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> {
-                    String paths = String.join(",", properties.getPermitAll());
-                    authorize.requestMatchers(paths).permitAll().anyRequest().authenticated();
+                    if(CollectionUtils.isEmpty(properties.getPermitAll())) {
+                        authorize.requestMatchers("/**").permitAll();
+                    } else {
+                        String[] permitAllPaths = properties.getPermitAll().toArray(new String[0]);
+                        authorize.requestMatchers(permitAllPaths).permitAll().anyRequest().authenticated();
+                    }
                 })
                 .build();
     }
