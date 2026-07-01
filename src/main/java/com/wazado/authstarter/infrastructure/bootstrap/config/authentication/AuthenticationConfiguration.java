@@ -37,10 +37,10 @@ public class AuthenticationConfiguration {
                 .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> {
                     if(CollectionUtils.isEmpty(properties.getPermitAll())) {
-                        authorize.requestMatchers("/**").permitAll();
+                        authorize.anyRequest().authenticated();
                     } else {
                         String[] permitAllPaths = properties.getPermitAll().toArray(new String[0]);
-                        authorize.requestMatchers(permitAllPaths).permitAll().anyRequest().authenticated();
+                        authorize.requestMatchers(permitAllPaths).permitAll();
                     }
                 })
                 .build();
