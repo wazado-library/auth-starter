@@ -32,6 +32,7 @@ public class JwtProviderUseCase implements JwtProvider {
                 .claim("username", userPrinciple.username())
                 .claim("roles", userPrinciple.roles())
                 .claim("permissions", userPrinciple.permissions())
+                .claim("sid", userPrinciple.sid())
                 .claim("type", "ACCESS")
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusMillis(properties.getAccessExpiration())))
@@ -40,9 +41,10 @@ public class JwtProviderUseCase implements JwtProvider {
     }
 
     @Override
-    public String generateRefreshToken(Long userId) {
+    public String generateRefreshToken(Long userId, String sid) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("sid", sid)
                 .claim("type", "REFRESH")
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusMillis(properties.getRefreshExpiration())))
@@ -77,7 +79,7 @@ public class JwtProviderUseCase implements JwtProvider {
     private Optional<String> getTokenFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         return Optional.ofNullable(bearerToken)
-                .filter(b -> b.contains("bearer"))
-                .map(b -> b.substring(b.indexOf("bearer") + 1));
+                .filter(b -> b.contains("Bearer"))
+                .map(b -> b.substring("Bearer".length() + 1));
     }
 }

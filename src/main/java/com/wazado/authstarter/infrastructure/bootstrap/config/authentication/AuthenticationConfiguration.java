@@ -13,7 +13,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
@@ -26,6 +30,8 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationConfiguration {
+    AccessDeniedHandler customAccessDeniedHandler;
+    AuthenticationEntryPoint customAuthenticationEntryPoint;
     JwtAuthenticationFilter jwtAuthenticationFilter;
     AuthProperties properties;
 
@@ -34,6 +40,7 @@ public class AuthenticationConfiguration {
         return http
                 .csrf(CsrfConfigurer::disable)
                 .cors(CorsConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> {
                     if(CollectionUtils.isEmpty(properties.getPermitAll())) {
@@ -43,6 +50,9 @@ public class AuthenticationConfiguration {
                         authorize.requestMatchers(permitAllPaths).permitAll();
                     }
                 })
+                .exceptionHandling(exc -> exc
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .build();
     }
 }
