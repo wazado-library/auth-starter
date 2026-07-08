@@ -7,4 +7,5 @@ public interface JwtProvider {
     String generateAccessToken(UserPrinciple userPrinciple);
     String generateRefreshToken(Long userId, String sid);
     UserPrinciple parseToken(HttpServletRequest request);
+    UserPrinciple parseToken(String accessToken);
 }

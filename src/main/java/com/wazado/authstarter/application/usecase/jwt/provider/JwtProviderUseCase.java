@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -19,6 +20,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -66,8 +68,28 @@ public class JwtProviderUseCase implements JwtProvider {
                     .getPayload();
             return UserPrinciple.of(claims);
         } catch (JwtException e) {
+            log.error("Parse token error: {}", e.getMessage(), e.getCause());
             throw new RuntimeException("Thông tin xác thực không hợp lệ");
         } catch (IllegalArgumentException e) {
+            log.error("Parse token error: {}", e.getMessage(), e.getCause());
+            throw new RuntimeException("Vui lòng bổ sung thông tin xác thực");
+        }
+    }
+
+    @Override
+    public UserPrinciple parseToken(String accessToken) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(generateKey())
+                    .build()
+                    .parseSignedClaims(accessToken)
+                    .getPayload();
+            return UserPrinciple.of(claims);
+        } catch (JwtException e) {
+            log.error("Parse token error: {}", e.getMessage(), e.getCause());
+            throw new RuntimeException("Thông tin xác thực không hợp lệ");
+        } catch (IllegalArgumentException e) {
+            log.error("Parse token error: {}", e.getMessage(), e.getCause());
             throw new RuntimeException("Vui lòng bổ sung thông tin xác thực");
         }
     }
